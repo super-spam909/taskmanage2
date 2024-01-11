@@ -1,0 +1,16 @@
+<!-- app_name/templates/register.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Registration</title>
+</head>
+<body>
+    <h2>User Registration</h2>
+    <form method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+        {{ serializer.as_p }}
+        <button type="submit">Register</button>
+    </form>
+</body>
+</html>

@@ -5,6 +5,8 @@ from .models import User, Task
 from rest_framework.decorators import api_view
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+### for password recovery
+
 
 # Create your views here.
 
@@ -18,6 +20,9 @@ class UserViews:
             return Response(serializer.data, status=201)
         
         return Response(serializer.errors, status=400)
+
+    
+    
     
     @api_view(['GET'])
     def getUsers(request):
@@ -33,7 +38,28 @@ class UserViews:
             serializer = UserSerializer(object, many=False)
             return Response({"message": "User is logged in", "User" : serializer.data})
         return Response({"message" : "user not found"}, status = 401)
+    
+   
+"""
+    @api_view(['POST'])
+    def resetPassword(request):
+        email = request.data.get('email', '')
 
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Generate a password reset token
+        token_generator = default_token_generator
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = token_generator.make_token(user)
+
+            # Include the reset link in the response (you can also send it via email)
+        reset_link = f"http://your-frontend-url/reset-password/{uid}/{token}/"
+        return Response({"message": "Password reset link sent", "reset_link": reset_link})
+"""
+        
 class TaskViews:
     @api_view(['POST'])
     def CreateTask(request):

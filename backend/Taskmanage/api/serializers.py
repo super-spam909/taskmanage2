@@ -11,3 +11,8 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = '__all__'
+
+class PasswordRecoverySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email','password']
