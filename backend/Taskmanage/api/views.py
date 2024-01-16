@@ -32,6 +32,24 @@ class UserViews:
         allUsers = User.objects.all()
         serializer = UserSerializer(allUsers, many=True)
         return Response(serializer.data)
+    
+    @api_view(['GET'])
+    def whoamI(request):
+        token= request.COOKIES.get('jwt')
+
+        if not token:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms = ['HS256'])
+        except jwt.ExpiredSignatureError:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        user = User.objects.get(pk=payload['id'])
+        serializer= UserSerializer(user, many=False)
+        return Response(serializer.data)
+            
+
         
 
     @api_view(['POST'])
@@ -42,10 +60,19 @@ class UserViews:
             payload={'id': object.id, 'exp': datetime.datetime.utcnow()+datetime.timedelta(minutes=60), 'iat' : datetime.datetime.utcnow()}
             token=jwt.encode(payload,settings.SECRET_KEY, algorithm= 'HS256')
             response= Response()
-            response.set_cookie(key='jwt', value='token', httponly=True)
+            response.set_cookie(key='jwt', value=token, httponly=True)
             response.data={"message": "User is logged in", 'jwt' : token}
             return response
         return Response({"message" : "user not found"}, status = 401)
+
+
+    @api_view(['POST'])
+    def logout(request):
+        response = Response()
+        response.delete_cookie('jwt')
+        response.data={'message': "you have been logged out"}
+        return response 
+
     
    
 """
@@ -71,22 +98,54 @@ class UserViews:
 class TaskViews:
     @api_view(['POST'])
     def CreateTask(request):
-        user_object = User.objects.get(pk=request.data["id"])
-        if user_object!=None:
-            created_task = Task.objects.create(user=user_object,title = request.data["title"], description= request.data["description"])
+        token= request.COOKIES.get('jwt')
+
+        if not token:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms = ['HS256'])
+        except jwt.ExpiredSignatureError:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        user = User.objects.get(pk=payload['id'])
+        if user!=None:
+            created_task = Task.objects.create(user=user,title = request.data["title"], description= request.data["description"])
             created_task = TaskSerializer(created_task, many=False)
             return Response({"message": "successfully saved", "Task" : created_task.data})
         return Response({"message" : "task not created"}, status = 401)
             
     @api_view(['GET'])
     def GetTasks(request):
-        allTasks = Task.objects.all()
+        token= request.COOKIES.get('jwt')
+
+        if not token:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms = ['HS256'])
+        except jwt.ExpiredSignatureError:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        user = User.objects.get(pk=payload['id'])
+        allTasks = Task.objects.filter(user=user)
         serializer = TaskSerializer(allTasks, many=True)
         return Response(serializer.data)
     
 
     @api_view(['GET'])
     def TaskDetail(request, pk):
+        token= request.COOKIES.get('jwt')
+
+        if not token:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms = ['HS256'])
+        except jwt.ExpiredSignatureError:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        #user = User.objects.get(pk=payload['id'])
         try:
             task = Task.objects.get(id=pk)
             serializer = TaskSerializer(task, many=False)
@@ -96,10 +155,27 @@ class TaskViews:
 
    
      
-    @api_view(['DELETE'])
-    def DeleteTask(request, pk):
+    @api_view(['POST'])
+    def DeleteTask(request):
+        token= request.COOKIES.get('jwt')
+
+        if not token:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
         try:
-            task_to_delete = Task.objects.get(id=pk)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms = ['HS256'])
+        except jwt.ExpiredSignatureError:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        user = User.objects.get(pk=payload['id'])
+
+        
+
+        try:
+            task_to_delete = Task.objects.get(pk=request.data['id'])
+
+            if task_to_delete.user != user:
+                 return Response({"message": "not authorized to access it "}, status=404)
             task_to_delete.delete()
             return Response({"message": "Task successfully deleted"})
         except Task.DoesNotExist:
@@ -107,9 +183,30 @@ class TaskViews:
         
 
     @api_view(['POST'])
-    def UpdateTask(request, pk):
+    def UpdateTask(request):
+        token= request.COOKIES.get('jwt')
+
+        if not token:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
         try:
-            task = Task.objects.get(pk=pk)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms = ['HS256'])
+        except jwt.ExpiredSignatureError:
+             return Response({"message" : "unauthaorized"}, status = 401)
+        
+        
+        user = User.objects.get(pk=payload['id']) 
+
+
+        
+        try:
+            task = Task.objects.get(pk=request.data['id'])
+        
+            if task.user != user:
+                 return Response({"message": "not authorized to access it "}, status=404)
+
+
+
         except Task.DoesNotExist:
             return Response({"message": "Task not found"}, status=404)
 

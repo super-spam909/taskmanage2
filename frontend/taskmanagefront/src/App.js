@@ -1,8 +1,10 @@
 
-
+import axios from 'axios'
+import { useEffect } from 'react';
 import './App.css';
-import Register from './components/Register';
-import Login from './components/Login';
+
+import Form from  './components/Form.js' ;
+import Main from  './components/Main.js' ;
 
 /*
 function App() {
@@ -13,13 +15,27 @@ export default App;
 
 */
 
-function App() {
+function App() { 
+
+  const [authenticated, setAuthenticated] = useState(False);
+  useEffect(
+    () => {
+      const authenticate = async () => {
+      try{
+      const Response = await axios.get('http://127.0.0.1:8000/api/whoamI/')
+      setAuthenticated=True
+}
+catch(error)
+ {setAuthenticated=False}
+}
+authenticate()
+
+    }, []
+  ) 
 return (
   <div>
     <h1>Welcome to Your App</h1>
-    <Register />
-    
-    <Login />
+    {authenticated ?(<Main/> ) : (<Form/>)}
   </div>
 );
 }

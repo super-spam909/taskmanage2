@@ -6,11 +6,13 @@ urlpatterns=[
     path("showUsers/", UserViews.getUsers),
     path("registerUser/", UserViews.registerUser ),
     path("login/", UserViews.login),
+    path("logout/", UserViews.logout),
+    path("whoamI/", UserViews.whoamI),
     path("CreateTask/", TaskViews.CreateTask),
     path("GetTasks/", TaskViews.GetTasks),
-    path("DeleteTask/<int:pk>/", TaskViews.DeleteTask),
-    path("TaskDetail/<int:pk>/", TaskViews.TaskDetail),
-    path("UpdateTask/<int:pk>/", TaskViews.UpdateTask),
+    path("DeleteTask/", TaskViews.DeleteTask),
+    path("TaskDetail/", TaskViews.TaskDetail),
+    path("UpdateTask/", TaskViews.UpdateTask),
     #path("resetPassword/", UserViews.resetPassword),
 
     
