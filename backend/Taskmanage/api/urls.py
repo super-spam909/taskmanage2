@@ -4,7 +4,7 @@ from .views import UserViews, TaskViews
 
 urlpatterns=[
     path("showUsers/", UserViews.getUsers),
-    path("register/", UserViews.registerUser, name="register"),
+    path("registerUser/", UserViews.registerUser ),
     path("login/", UserViews.login),
     path("CreateTask/", TaskViews.CreateTask),
     path("GetTasks/", TaskViews.GetTasks),

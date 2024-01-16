@@ -5,6 +5,9 @@ from .models import User, Task
 from rest_framework.decorators import api_view
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+import jwt, datetime 
+from django.conf import settings 
+
 ### for password recovery
 
 
@@ -17,7 +20,7 @@ class UserViews:
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=201)
+            return Response({'user' : serializer.data, 'message' : 'user created'}, status=201)
         
         return Response(serializer.errors, status=400)
 
@@ -35,8 +38,13 @@ class UserViews:
     def login(request):
         object = User.objects.get(username=request.data["username"], password=request.data["password"])
         if object!= None:
-            serializer = UserSerializer(object, many=False)
-            return Response({"message": "User is logged in", "User" : serializer.data})
+    
+            payload={'id': object.id, 'exp': datetime.datetime.utcnow()+datetime.timedelta(minutes=60), 'iat' : datetime.datetime.utcnow()}
+            token=jwt.encode(payload,settings.SECRET_KEY, algorithm= 'HS256')
+            response= Response()
+            response.set_cookie(key='jwt', value='token', httponly=True)
+            response.data={"message": "User is logged in", 'jwt' : token}
+            return response
         return Response({"message" : "user not found"}, status = 401)
     
    
